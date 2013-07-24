@@ -191,7 +191,7 @@ class SQLAlchemyBackend(CleaverBackend):
         finally:
             self.Session.close()
 
-    def mark_participant(self, experiment_name, variant):
+    def mark_participant(self, identity, experiment_name, variant):
         """
         Mark a participation for a specific experiment variant.
 
@@ -200,7 +200,7 @@ class SQLAlchemyBackend(CleaverBackend):
         """
         self._mark_event('PARTICIPANT', experiment_name, variant)
 
-    def mark_conversion(self, experiment_name, variant):
+    def mark_conversion(self, identity, experiment_name, variant):
         """
         Mark a conversion for a specific experiment variant.
 

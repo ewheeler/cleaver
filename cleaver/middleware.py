@@ -119,7 +119,8 @@ class SplitMiddleware(object):
                             e.name
                         )
                         if variant:
-                            self._backend.mark_participant(e.name, variant)
+                            self._backend.mark_participant(cleaver.identity,
+                                                           e.name, variant)
 
                     start_response(
                         '204 No Content',

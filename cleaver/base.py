@@ -146,6 +146,7 @@ class Cleaver(object):
         if self._backend.get_variant(self.identity, experiment_name) and \
                 self.human is True:
             self._backend.mark_conversion(
+                self.identity,
                 experiment_name,
                 self._backend.get_variant(self.identity, experiment_name)
             )

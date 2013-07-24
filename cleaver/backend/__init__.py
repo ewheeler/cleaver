@@ -92,7 +92,7 @@ class CleaverBackend(object):
         return  # pragma: nocover
 
     @abc.abstractmethod
-    def mark_participant(self, experiment_name, variant):
+    def mark_participant(self, identity, experiment_name, variant):
         """
         Mark a participation for a specific experiment variant.
 
@@ -112,10 +112,10 @@ class CleaverBackend(object):
         """
         self.set_variant(identity, experiment_name, variant)
         if self.is_verified_human(identity):
-            self.mark_participant(experiment_name, variant)
+            self.mark_participant(identity, experiment_name, variant)
 
     @abc.abstractmethod
-    def mark_conversion(self, experiment_name, variant):
+    def mark_conversion(self, identity, experiment_name, variant):
         """
         Mark a conversion for a specific experiment variant.
 
