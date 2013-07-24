@@ -41,9 +41,11 @@ REDIS_KEY_TEMPLATES = {
     # number of participations (each identity is counted for each
     # participation)
     #    key: ((variant2, 43.0), (variant1, 88.0), (variant0, 12.0), ...)
-    "total_participations": "%(prefix)s:total_participations:%(experiment_name)s",
+    "total_participations":
+    "%(prefix)s:total_participations:%(experiment_name)s",
 
-    # total_conversions are redis sorted sets of variant_name scored by conversions
+    # total_conversions are redis sorted sets of variant_name
+    # scored by conversions
     #    key: ((variant1, 30.0), (variant2, 23.0), (variant0, 9.0), ...)
     "total_conversions": "%(prefix)s:total_conversions:%(experiment_name)s",
 
