@@ -202,7 +202,7 @@ class TestSQLAlchemy(TestCase):
     def test_score(self):
         b = self.b
         b.save_experiment('text_size', ('small', 'medium', 'large'))
-        b.mark_conversion('text_size', 'medium')
+        b.mark_conversion('ryan', 'text_size', 'medium')
 
         conversions = model.TrackedEvent.query.filter_by(
             type='CONVERSION'
@@ -216,9 +216,9 @@ class TestSQLAlchemy(TestCase):
     def test_score_multiple(self):
         b = self.b
         b.save_experiment('text_size', ('small', 'medium', 'large'))
-        b.mark_conversion('text_size', 'medium')
-        b.mark_conversion('text_size', 'large')
-        b.mark_conversion('text_size', 'medium')
+        b.mark_conversion('ryan', 'text_size', 'medium')
+        b.mark_conversion('ryan', 'text_size', 'large')
+        b.mark_conversion('ryan', 'text_size', 'medium')
 
         conversions = model.TrackedEvent.query.filter_by(
             type='CONVERSION'
@@ -273,9 +273,9 @@ class TestSQLAlchemy(TestCase):
         b = self.b
         b.save_experiment('text_size', ('small', 'medium', 'large'))
         b.save_experiment('show_promo', ('True', 'False'))
-        b.mark_conversion('text_size', 'small')
-        b.mark_conversion('text_size', 'medium')
-        b.mark_conversion('show_promo', 'True')
+        b.mark_conversion('ryan', 'text_size', 'small')
+        b.mark_conversion('ryan', 'text_size', 'medium')
+        b.mark_conversion('ryan', 'show_promo', 'True')
 
         assert b.conversions('text_size', 'small') == 1
         assert b.conversions('text_size', 'medium') == 1

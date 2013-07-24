@@ -141,23 +141,16 @@ class TestRedis(TestCase):
         assert ryan.keys()[0] == 'text_size'
         assert ryan[ryan.keys()[0]] == 'medium'
 
-        """
         participants = b.redis.keys("testcleaver:total_participants:*")
         assert len(participants) == 1
 
         assert participants[0].split(':')[-1] == 'text_size'
         assert b.redis.zrange(participants[0], 0, 100)[0] == 'medium'
         assert len(b.redis.zrange(participants[0], 0, 100)) == 1
-        """
 
         participations = b.redis.keys("testcleaver:total_participations:*")
         assert len(participations) == 1
         assert len(b.redis.zrange(participations[0], 0, 100)) == 1
-
-        assert participations[0].split(':')[-1] == 'text_size'
-        assert b.redis.zrange(participations[0], 0, 100)[0] == 'medium'
-        assert len(b.redis.zrange(participations[0], 0, 100)) == 1
-
 
     def test_unverified_participate_multiple(self):
         b = self.b
@@ -205,6 +198,9 @@ class TestRedis(TestCase):
         assert variant == 'medium'
         assert int(b.redis.zscore(participations[0], variant)) == 3
 
+        participants = b.redis.keys("testcleaver:total_participants:*")
+        assert int(b.redis.zscore(participants[0], variant)) == 1
+
     def test_get_variant(self):
         b = self.b
         b.save_experiment('text_size', ('small', 'medium', 'large'))
@@ -216,7 +212,7 @@ class TestRedis(TestCase):
     def test_score(self):
         b = self.b
         b.save_experiment('text_size', ('small', 'medium', 'large'))
-        b.mark_conversion('text_size', 'medium')
+        b.mark_conversion('ryan', 'text_size', 'medium')
 
         conversions = b.redis.keys("testcleaver:total_conversions:*")
         assert len(conversions) == 1
@@ -228,9 +224,9 @@ class TestRedis(TestCase):
     def test_score_multiple(self):
         b = self.b
         b.save_experiment('text_size', ('small', 'medium', 'large'))
-        b.mark_conversion('text_size', 'medium')
-        b.mark_conversion('text_size', 'large')
-        b.mark_conversion('text_size', 'medium')
+        b.mark_conversion('ryan', 'text_size', 'medium')
+        b.mark_conversion('ryan', 'text_size', 'large')
+        b.mark_conversion('ryan', 'text_size', 'medium')
 
         experiments_w_conv = b.redis.keys("testcleaver:total_conversions:*")
         assert len(experiments_w_conv) == 1
@@ -242,7 +238,7 @@ class TestRedis(TestCase):
             assert ((
                 key.split(':')[-1] == 'text_size' and
                 c == 'medium' and
-                int(b.redis.zscore(key, c)) == 2
+                int(b.redis.zscore(key, c)) == 1
             ) or (
                 key.split(':')[-1] == 'text_size' and
                 c == 'large' and
@@ -286,9 +282,9 @@ class TestRedis(TestCase):
         b = self.b
         b.save_experiment('text_size', ('small', 'medium', 'large'))
         b.save_experiment('show_promo', ('True', 'False'))
-        b.mark_conversion('text_size', 'small')
-        b.mark_conversion('text_size', 'medium')
-        b.mark_conversion('show_promo', 'True')
+        b.mark_conversion('ryan', 'text_size', 'small')
+        b.mark_conversion('ryan', 'text_size', 'medium')
+        b.mark_conversion('ryan', 'show_promo', 'True')
 
         assert b.conversions('text_size', 'small') == 1
         assert b.conversions('text_size', 'medium') == 1

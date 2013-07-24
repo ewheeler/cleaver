@@ -89,6 +89,42 @@ class TestFullStack(TestCase):
         assert VariantStat('Heads', experiment).z_score == 'N/A'
         assert VariantStat('Tails', experiment).z_score == 0
 
+        # The fourth request returns the same cleaver variant
+        assert app(environ, lambda *args: None)[0] == variant
+
+        assert len(self.b.all_experiments()) == 1
+        assert self.b.all_experiments()[0].name == 'Coin'
+        assert self.b.all_experiments()[0].started_on == started_on
+
+        experiment = self.b.get_experiment('Coin', ['Heads', 'Tails'])
+        assert experiment.participants == 1
+        assert self.b.participants('Coin', variant) == 1
+
+        assert VariantStat('Heads', experiment).z_score == 'N/A'
+        assert VariantStat('Tails', experiment).z_score == 0
+
+        # The fifth request returns the same cleaver variant
+        assert app(environ, lambda *args: None)[0] == variant
+        assert experiment.participants == 1
+        assert experiment.conversions == 1
+
+        assert VariantStat('Heads', experiment).z_score == 'N/A'
+        assert VariantStat('Tails', experiment).z_score == 0
+
+        # The sixth request marks a second conversion
+        assert app(environ, lambda *args: None) == []
+        assert experiment.participants == 1
+        assert experiment.conversions == 1
+
+        assert self.b.participants('Coin', variant) == 1
+        # multiple conversions should not be scored per participant
+        assert self.b.conversions('Coin', variant) == 1
+        # experiment conversions and variant conversions should match
+        assert self.b.conversions('Coin', variant) == experiment.conversions
+
+        assert VariantStat('Heads', experiment).z_score == 'N/A'
+        assert VariantStat('Tails', experiment).z_score == 0
+
     def test_human_verification_required(self):
 
         def _track(environ):

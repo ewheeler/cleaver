@@ -32,14 +32,29 @@ REDIS_KEY_TEMPLATES = {
     #          experiment_B_name: variant_B_name, ...}
     "participant": "%(prefix)s:participant:%(identity)s",
 
-    # total_participations are redis sorted sets of variant_name scored by
-    # number of participants
+    # total_participants are redis sorted sets of variant_name scored by
+    # number of participants (each identity is only counted once)
     #    key: ((variant2, 23.0), (variant1, 48.0), (variant0, 6.0), ...)
+    "total_participants": "%(prefix)s:total_participants:%(experiment_name)s",
+
+    # total_participations are redis sorted sets of variant_name scored by
+    # number of participations (each identity is counted for each
+    # participation)
+    #    key: ((variant2, 43.0), (variant1, 88.0), (variant0, 12.0), ...)
     "total_participations": "%(prefix)s:total_participations:%(experiment_name)s",
 
     # total_conversions are redis sorted sets of variant_name scored by conversions
     #    key: ((variant1, 30.0), (variant2, 23.0), (variant0, 9.0), ...)
-    "total_conversions": "%(prefix)s:total_conversions:%(experiment_name)s"
+    "total_conversions": "%(prefix)s:total_conversions:%(experiment_name)s",
+
+    # participations are redis sorted sets of identities scored by
+    # number of times the identity has participated with a variant
+    #    key: ((identity3, 10.0), (identity1, 3.0), identity0, 4.0), ...)
+    "participations": "%(prefix)s:participations:%(experiment_name)s:%(variant_name)s",
+
+    # conversions are redis sets of identities that have converted
+    #    key: (identity3, identity1, identity0, ...)
+    "conversions": "%(prefix)s:conversions:%(experiment_name)s:%(variant_name)s",
 }
 
 
@@ -194,25 +209,37 @@ class RedisBackend(CleaverBackend):
             return self.redis.hmset(key, {experiment_name: variant_name})
         return False
 
-    def mark_participant(self, experiment_name, variant_name):
+    def mark_participant(self, identity, experiment_name, variant_name):
         """
         Mark a participation for a specific experiment variant.
 
         :param experiment_name the string name of the experiment
         :param variant the string name of the variant
         """
+        pkey = self._key("participations", experiment_name, variant_name)
+        if not self.redis.zscore(pkey, identity):
+            tpkey = self._key("total_participants", experiment_name)
+            self.redis.zincrby(tpkey, variant_name, 1.0)
+
+        pkey = self._key("participations", experiment_name, variant_name)
+        self.redis.zincrby(pkey, identity, 1.0)
         key = self._key("total_participations", experiment_name)
         return self.redis.zincrby(key, variant_name, 1.0)
 
-    def mark_conversion(self, experiment_name, variant_name):
+    def mark_conversion(self, identity, experiment_name, variant_name):
         """
         Mark a conversion for a specific experiment variant.
 
         :param experiment_name the string name of the experiment
         :param variant the string name of the variant
         """
-        key = self._key("total_conversions", experiment_name)
-        return self.redis.zincrby(key, variant_name, 1.0)
+        pkey = self._key("conversions", experiment_name, variant_name)
+        # only count one conversion per identity
+        if not self.redis.sismember(pkey, identity):
+            self.redis.sadd(pkey, identity)
+            key = self._key("total_conversions", experiment_name)
+            return self.redis.zincrby(key, variant_name, 1.0)
+        return False
 
     def participants(self, experiment_name, variant_name):
         """
@@ -220,7 +247,7 @@ class RedisBackend(CleaverBackend):
 
         Returns an integer.
         """
-        key = self._key("total_participations", experiment_name)
+        key = self._key("total_participants", experiment_name)
         score = self.redis.zscore(key, variant_name)
         if score is not None:
             return int(score)
