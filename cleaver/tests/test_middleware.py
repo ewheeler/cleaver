@@ -177,8 +177,8 @@ class TestMiddleware(TestCase):
             call('ryan', 'color'),
         ])
         mark_participant.assert_has_calls([
-            call('show_promo', 'True'),
-            call('color', 'blue'),
+            call('ryan', 'show_promo', 'True'),
+            call('ryan', 'color', 'blue'),
         ])
 
     def test_missing_input(self):

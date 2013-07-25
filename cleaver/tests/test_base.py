@@ -178,7 +178,7 @@ class TestSplit(TestCase):
         get_identity.return_value = 'ABC123'
 
         cleaver.score('primary_color')
-        mark_conversion.assert_called_with('primary_color', 'red')
+        mark_conversion.assert_called_with('ABC123', 'primary_color', 'red')
 
 
 class TestVariants(TestCase):
