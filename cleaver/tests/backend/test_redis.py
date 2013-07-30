@@ -8,13 +8,6 @@ from cleaver.experiment import Experiment
 from cleaver.tests import FakeIdentityProvider
 from cleaver.backend.redis import RedisBackend
 
-import sys
-
-
-def debug(msg):
-    sys.stdout.write(' %s ' % str(msg))
-    sys.stdout.flush()
-
 
 class TestRedis(TestCase):
 
@@ -22,7 +15,8 @@ class TestRedis(TestCase):
         self.b = RedisBackend(prefix="testcleaver")
 
     def tearDown(self):
-        map(self.b.redis.delete, self.b.redis.keys("testcleaver:*"))
+        for key in self.b.redis.keys("testcleaver:*"):
+            self.b.redis.delete(key)
 
     def test_valid_configuration(self):
         cleaver = Cleaver({}, FakeIdentityProvider(), RedisBackend())
@@ -117,11 +111,10 @@ class TestRedis(TestCase):
         ryan = b.redis.hgetall(people[0])
 
         assert people[0].split(':')[-1] == 'ryan'
-        assert ryan.keys()[0] == 'text_size'
-        assert ryan[ryan.keys()[0]] == 'medium'
+        assert list(ryan.keys())[0] == 'text_size'
+        assert ryan[list(ryan.keys())[0]] == 'medium'
 
         assert len(b.redis.keys("testcleaver:total_participations:*")) == 0
-        assert len(b.redis.keys("testcleaver:total_participants:*")) == 0
 
     @patch.object(
         RedisBackend,
@@ -138,8 +131,8 @@ class TestRedis(TestCase):
         ryan = b.redis.hgetall(people[0])
 
         assert people[0].split(':')[-1] == 'ryan'
-        assert ryan.keys()[0] == 'text_size'
-        assert ryan[ryan.keys()[0]] == 'medium'
+        assert list(ryan.keys())[0] == 'text_size'
+        assert ryan[list(ryan.keys())[0]] == 'medium'
 
         participants = b.redis.keys("testcleaver:total_participants:*")
         assert len(participants) == 1
@@ -168,9 +161,8 @@ class TestRedis(TestCase):
         ryan = b.redis.hgetall(people[0])
 
         assert people[0].split(':')[-1] == 'ryan'
-        assert ryan.keys()[0] == 'text_size'
-        assert ryan[ryan.keys()[0]] == 'medium'
-        assert len(b.redis.keys("testcleaver:total_participants:*")) == 0
+        assert list(ryan.keys())[0] == 'text_size'
+        assert ryan[list(ryan.keys())[0]] == 'medium'
 
         assert len(b.redis.keys("testcleaver:total_participations:*")) == 0
 
@@ -191,8 +183,8 @@ class TestRedis(TestCase):
         ryan = b.redis.hgetall(people[0])
 
         assert people[0].split(':')[-1] == 'ryan'
-        assert ryan.keys()[0] == 'text_size'
-        assert ryan[ryan.keys()[0]] == 'medium'
+        assert list(ryan.keys())[0] == 'text_size'
+        assert ryan[list(ryan.keys())[0]] == 'medium'
 
         participations = b.redis.keys("testcleaver:total_participations:*")
         assert len(participations) == 1
